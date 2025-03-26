@@ -1,0 +1,33 @@
+version: "3"
+services:
+  frontend:
+    build:
+      context: ./client  # Path to your frontend directory
+    ports:
+      - "3000:3000"  # Expose frontend on port 3000
+    volumes:
+      - ./client:/usr/src/app  # Sync your local files with the container
+    depends_on:
+      - backend  # Ensures the backend is up before starting the frontend
+
+  backend:
+    build:
+      context: ./server  # Path to your backend directory (assuming it's inside a server folder)
+    ports:
+      - "5000:5000"  # Expose backend on port 5000
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/fitnessdb  # Example for MongoDB connection
+    volumes:
+      - ./server:/usr/src/app  # Sync backend files with container
+    depends_on:
+      - mongo  # Ensure MongoDB container is started first
+  
+  mongo:
+    image: mongo  # Use the official MongoDB image
+    ports:
+      - "27017:27017"  # Expose MongoDB on default port
+    volumes:
+      - mongo-data:/data/db  # Persist MongoDB data
+
+volumes:
+  mongo-data:  # Defines a persistent volume for MongoDB data

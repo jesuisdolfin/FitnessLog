@@ -1,0 +1,103 @@
+/* Table Styling */
+.table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  background-color: #fff;
+  color: #212529;
+}
+
+.table.dark {
+  background-color: #2c2c2c;
+  color: #f9f9f9; /* Light text for dark mode */
+}
+
+.table.dark th,
+.table.dark td {
+  border-color: #444;
+}
+
+.table.dark td {
+  color: #f9f9f9; /* Ensure text color is white in dark mode */
+}
+
+.btn.dark {
+  background-color: #444;
+  color: #fff;
+}
+
+.btn.dark:hover {
+  background-color: #555;
+}
+
+th, td {
+  padding: 12px;
+  text-align: center;
+}
+
+th {
+  background-color: #007bff;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+td {
+  background-color: #f9f9f9;
+  font-size: 14px;
+  color: #212529; /* Default text color */
+}
+
+/* Dark Mode adjustments for table cells */
+.table.dark td {
+  background-color: #444; /* Darker background for cells in dark mode */
+  color: #f9f9f9; /* Light text color in dark mode */
+}
+
+/* Alternate row colors for better readability */
+tbody tr:nth-child(even) td {
+  background-color: #f1f1f1;
+}
+
+/* Hover effect */
+tbody tr:hover td {
+  background-color: #e0e0e0;
+  transition: background-color 0.2s ease;
+}
+
+/* Button Styling */
+.btn {
+  padding: 6px 12px;
+  font-size: 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  border: none;
+}
+
+.btn-warning {
+  background-color: #ffc107;
+  color: #212529;
+}
+
+.btn-warning:hover {
+  background-color: #e0a800;
+}
+
+.btn-danger {
+  background-color: #dc3545;
+  color: #ffffff;
+}
+
+.btn-danger:hover {
+  background-color: #c82333;
+}
+
+/* Adjust button alignment */
+td .btn {
+  margin-right: 6px;
+}

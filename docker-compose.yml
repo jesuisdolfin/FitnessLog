@@ -16,7 +16,7 @@ services:
     ports:
       - "5000:5000"  # Expose backend on port 5000
     environment:
-      - MONGO_URI=mongodb://mongo:27017/fitnessdb  # Example for MongoDB connection
+      - MONGO_URI=mongodb://mongo:27017/fitnesslog  # Example for MongoDB connection
     volumes:
       - ./server:/usr/src/app  # Sync backend files with container
     depends_on:

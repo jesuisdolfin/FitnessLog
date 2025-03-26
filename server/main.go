@@ -1,29 +1,63 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"github.com/go-chi/cors"
-	"github.com/go-chi/chi/v5"
-	"github.com/google/uuid"
 
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/cors"
+	"github.com/google/uuid"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type Log struct {
-	ID      string `json:"_id"`
+	ID       string `json:"_id" bson:"_id"`
 	Exercise string `json:"exercise"`
-	Sets    int    `json:"sets"`
-	Reps    int    `json:"reps"`
-	Weight  int    `json:"weight"`
-	Date    string `json:"date"`
+	Sets     int    `json:"sets"`
+	Reps     int    `json:"reps"`
+	Weight   int    `json:"weight"`
+	Date     string `json:"date"`
 }
 
+var collection *mongo.Collection
 
-var logs = []Log{} // Initialize logs as an empty slice
+// Connect to MongoDB
+func connectDB() {
+	clientOptions := options.Client().ApplyURI("mongodb://fitnesslog-mongo-1:27017")
+	client, err := mongo.Connect(context.TODO(), clientOptions)
+	if err != nil {
+		panic(err)
+	}
+
+	err = client.Ping(context.TODO(), nil)
+	if err != nil {
+		panic(err)
+	}
+
+	collection = client.Database("fitnesslog").Collection("logs")
+	fmt.Println("Connected to MongoDB!")
+}
 
 // Get all logs
 func getLogs(w http.ResponseWriter, r *http.Request) {
+	var logs []Log
+	cursor, err := collection.Find(context.TODO(), bson.M{})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer cursor.Close(context.TODO())
+
+	for cursor.Next(context.TODO()) {
+		var log Log
+		cursor.Decode(&log)
+		logs = append(logs, log)
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(logs)
 }
@@ -37,49 +71,64 @@ func addLog(w http.ResponseWriter, r *http.Request) {
 		log.ID = uuid.New().String()
 	}
 
-	logs = append(logs, log)
+	_, err := collection.InsertOne(context.TODO(), log)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(log)
 }
 
-
 // Delete a log by ID
 func deleteLog(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
-	for i, log := range logs {
-		if log.ID == id {
-			logs = append(logs[:i], logs[i+1:]...)
-			w.WriteHeader(http.StatusOK)
-			return
-		}
+
+	result, err := collection.DeleteOne(context.TODO(), bson.M{"_id": id})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
-	w.WriteHeader(http.StatusNotFound)
+
+	if result.DeletedCount == 0 {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }
 
 // Update a log
 func updateLog(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
+
 	var updatedLog Log
 	json.NewDecoder(r.Body).Decode(&updatedLog)
 
-	for i, log := range logs {
-		if log.ID == id {
-			logs[i] = updatedLog
-			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(updatedLog)
-			return
-		}
+	result, err := collection.ReplaceOne(context.TODO(), bson.M{"_id": id}, updatedLog)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
-	w.WriteHeader(http.StatusNotFound)
+	if result.MatchedCount == 0 {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(updatedLog)
 }
 
 func main() {
+	connectDB()
+
 	r := chi.NewRouter()
 
 	// Enable CORS
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3000"}, // Adjust for frontend origin
+		AllowedOrigins:   []string{"http://localhost:3000"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE"},
 		AllowedHeaders:   []string{"*"},
 		AllowCredentials: true,

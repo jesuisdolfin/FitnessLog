@@ -27,7 +27,7 @@ var collection *mongo.Collection
 
 // Connect to MongoDB
 func connectDB() {
-	clientOptions := options.Client().ApplyURI("mongodb://fitnesslog-mongo-1:27017")
+	clientOptions := options.Client().ApplyURI("mongodb+srv://jesuisdolfin:@Dolfino1@fitnesslog-cluster.wjecv1t.mongodb.net/?retryWrites=true&w=majority&appName=fitnesslog-cluster")
 	client, err := mongo.Connect(context.TODO(), clientOptions)
 	if err != nil {
 		panic(err)
@@ -44,23 +44,29 @@ func connectDB() {
 
 // Get all logs
 func getLogs(w http.ResponseWriter, r *http.Request) {
-	var logs []Log
-	cursor, err := collection.Find(context.TODO(), bson.M{})
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	defer cursor.Close(context.TODO())
+    var logs []Log
+    cursor, err := collection.Find(context.TODO(), bson.M{})
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+    defer cursor.Close(context.TODO())
 
-	for cursor.Next(context.TODO()) {
-		var log Log
-		cursor.Decode(&log)
-		logs = append(logs, log)
-	}
+    for cursor.Next(context.TODO()) {
+        var log Log
+        cursor.Decode(&log)
+        logs = append(logs, log)
+    }
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(logs)
+    // Check if logs are returned
+    if len(logs) == 0 {
+        fmt.Println("No logs found") // Debugging message
+    }
+
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(logs)
 }
+
 
 // Add a new log
 func addLog(w http.ResponseWriter, r *http.Request) {
@@ -128,7 +134,8 @@ func main() {
 
 	// Enable CORS
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3000"},
+		// AllowedOrigins:   []string{"http://18.191.252.100:3000"},
+		AllowedOrigins:   []string{"*"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE"},
 		AllowedHeaders:   []string{"*"},
 		AllowCredentials: true,
@@ -140,7 +147,7 @@ func main() {
 	r.Put("/logs/{id}", updateLog)
 
 	fmt.Println("Starting server on port 5000...")
-	err := http.ListenAndServe(":5000", r)
+	err := http.ListenAndServe("0.0.0.0:5000", r)
 	if err != nil {
 		fmt.Println("Error starting server:", err)
 	}

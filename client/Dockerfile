@@ -1,24 +1,21 @@
-# Use the official Node.js image for the frontend
-FROM node:18 AS build
+# Use official Node.js image as a base
+FROM node:18
 
 # Set the working directory inside the container
-WORKDIR /usr/src/app
+WORKDIR /app
 
-# Copy package.json and install dependencies
-COPY package*.json ./
+# Copy package.json and package-lock.json
+COPY ./client/package.json ./client/package-lock.json ./
+
+# Install the dependencies
 RUN npm install
 
-# Copy the rest of the application files
-COPY . .
+# Copy the rest of the frontend code
+COPY ./client ./
 
-# Build the React app
-RUN npm run build
-
-# Install a simple HTTP server to serve the React build files
-RUN npm install -g serve
-
-# Expose port 3000 for the React app
+# Expose the port the React app will run on
 EXPOSE 3000
 
-# Serve the build directory with serve
-CMD ["serve", "-s", "build", "-l", "3000"]
+# Start the React development server
+CMD ["npm", "start", "--host", "0.0.0.0"]
+

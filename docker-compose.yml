@@ -2,32 +2,24 @@ version: "3"
 services:
   frontend:
     build:
-      context: ./client  # Path to your frontend directory
+      context: ./client
+    network_mode: "host"
     ports:
-      - "3000:3000"  # Expose frontend on port 3000
+      - "3000:3000"
+    environment:
+      - REACT_APP_BACKEND_URL=http://18.191.252.100:5000  # public IP for backend
     volumes:
-      - ./client:/usr/src/app  # Sync your local files with the container
+      - ./client:/usr/src/app
     depends_on:
-      - backend  # Ensures the backend is up before starting the frontend
+      - backend
 
   backend:
     build:
-      context: ./server  # Path to your backend directory (assuming it's inside a server folder)
+      context: ./server
     ports:
-      - "5000:5000"  # Expose backend on port 5000
+      - "5000:5000"
     environment:
-      - MONGO_URI=mongodb://mongo:27017/fitnesslog  # Example for MongoDB connection
+      - MONGO_URI="mongodb+srv://jesuisdolfin:@Dolfino1@fitnesslog-cluster.wjecv1t.mongodb.net/?retryWrites=true&w=majority&appName=fitnesslog-cluster"
     volumes:
-      - ./server:/usr/src/app  # Sync backend files with container
-    depends_on:
-      - mongo  # Ensure MongoDB container is started first
-  
-  mongo:
-    image: mongo  # Use the official MongoDB image
-    ports:
-      - "27017:27017"  # Expose MongoDB on default port
-    volumes:
-      - mongo-data:/data/db  # Persist MongoDB data
-
-volumes:
-  mongo-data:  # Defines a persistent volume for MongoDB data
+      - ./server:/usr/src/app
+    # Removed the `depends_on: - mongo` line because you're not using a mongo container

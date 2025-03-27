@@ -3,6 +3,7 @@ import axios from "axios";
 import WeightliftingLog from "./WeightliftingLog";
 import AddExercise from "./AddExercise";
 import "./App.css";
+import BASE_URL from "./config"; // Import the BASE_URL
 
 function App() {
   const [logs, setLogs] = useState([]);
@@ -13,7 +14,7 @@ function App() {
   useEffect(() => {
     async function fetchLogs() {
       try {
-        const response = await axios.get("http://localhost:5000/logs");
+        const response = await axios.get(`${BASE_URL}:5000/logs`);
         setLogs(response.data);
       } catch (error) {
         console.error("Failed to load logs:", error);
@@ -39,7 +40,7 @@ function App() {
   // Add a new log
   const handleAddLog = async (newLog) => {
     try {
-      const response = await axios.post("http://localhost:5000/logs", newLog);
+      const response = await axios.post(`${BASE_URL}:5000/logs`, newLog);
       setLogs((prevLogs) => [...prevLogs, response.data]);
     } catch (error) {
       console.error("Failed to add log:", error);
@@ -49,7 +50,7 @@ function App() {
   // Delete a log
   const handleDeleteLog = async (_id) => {
     try {
-      await axios.delete(`http://localhost:5000/logs/${_id}`);
+      await axios.delete(`${BASE_URL}:5000/logs/${_id}`);
       setLogs((prevLogs) => prevLogs.filter((log) => log._id !== _id));
     } catch (error) {
       console.error("Failed to delete log:", error);
@@ -59,7 +60,7 @@ function App() {
   // Update a log
   const handleUpdateLog = async (updatedLog) => {
     try {
-      await axios.put(`http://localhost:5000/logs/${updatedLog._id}`, updatedLog);
+      await axios.put(`${BASE_URL}:5000/logs/${updatedLog._id}`, updatedLog);
       setLogs((prevLogs) =>
         prevLogs.map((log) => (log._id === updatedLog._id ? updatedLog : log))
       );

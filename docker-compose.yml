@@ -2,8 +2,7 @@ version: "3"
 services:
   frontend:
     build:
-      context: ./client
-      dockerfile: ./client/Dockerfile
+      context: ./client  # Correct build context
     network_mode: "host"
     ports:
       - "3000:3000"
@@ -13,6 +12,7 @@ services:
       - ./client:/usr/src/app
     depends_on:
       - backend
+
 
 
   backend:

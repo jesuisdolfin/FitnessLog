@@ -5,7 +5,9 @@ FROM node:18
 WORKDIR /app
 
 # Copy package.json and package-lock.json
-COPY ./client/package.json ./client/package-lock.json ./
+# Inside client/Dockerfile
+COPY package.json package-lock.json ./
+
 
 # Install the dependencies
 RUN npm install

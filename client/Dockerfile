@@ -3,11 +3,8 @@ FROM node:18
 
 # Set the working directory inside the container
 WORKDIR /app
-
-# Copy package.json and package-lock.json
-# Inside client/Dockerfile
+# Correct path based on build context
 COPY package.json package-lock.json ./
-
 
 # Install the dependencies
 RUN npm install

@@ -10,7 +10,7 @@ COPY package.json package-lock.json ./
 RUN npm install
 
 # Copy the rest of the frontend code
-COPY ./client ./
+COPY . .
 
 # Expose the port the React app will run on
 EXPOSE 3000

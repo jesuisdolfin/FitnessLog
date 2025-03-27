@@ -27,7 +27,7 @@ var collection *mongo.Collection
 
 // Connect to MongoDB
 func connectDB() {
-	clientOptions := options.Client().ApplyURI("mongodb+srv://jesuisdolfin:%40Dolfino1@fitnesslog-cluster.wjecv1t.mongodb.net/?retryWrites=true&w=majority&appName=fitnesslog-cluster")
+	clientOptions := options.Client().ApplyURI("mongodb+srv://jesuisdolfin:_Dolfino1@fitnesslog-cluster.wjecv1t.mongodb.net/?retryWrites=true&w=majority&appName=fitnesslog-cluster")
 	client, err := mongo.Connect(context.TODO(), clientOptions)
 	if err != nil {
 		panic(err)

@@ -15,9 +15,11 @@ function App() {
     async function fetchLogs() {
       try {
         const response = await axios.get(`${BASE_URL}:5000/logs`);
-        setLogs(response.data);
+        console.log("Fetched logs:", response.data);
+        setLogs(response.data || []);  // Default to an empty array if response.data is null or undefined
       } catch (error) {
         console.error("Failed to load logs:", error);
+        setLogs([]);  // Set to empty array in case of error
       }
     }
     fetchLogs();

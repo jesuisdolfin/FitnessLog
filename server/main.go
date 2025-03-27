@@ -27,7 +27,7 @@ var collection *mongo.Collection
 
 // Connect to MongoDB
 func connectDB() {
-	clientOptions := options.Client().ApplyURI("mongodb+srv://jesuisdolfin:@Dolfino1@fitnesslog-cluster.wjecv1t.mongodb.net/?retryWrites=true&w=majority&appName=fitnesslog-cluster")
+	clientOptions := options.Client().ApplyURI("mongodb+srv://jesuisdolfin:%40Dolfino1@fitnesslog-cluster.wjecv1t.mongodb.net/?retryWrites=true&w=majority&appName=fitnesslog-cluster")
 	client, err := mongo.Connect(context.TODO(), clientOptions)
 	if err != nil {
 		panic(err)
@@ -66,7 +66,6 @@ func getLogs(w http.ResponseWriter, r *http.Request) {
     w.Header().Set("Content-Type", "application/json")
     json.NewEncoder(w).Encode(logs)
 }
-
 
 // Add a new log
 func addLog(w http.ResponseWriter, r *http.Request) {
@@ -134,13 +133,13 @@ func main() {
 
 	// Enable CORS
 	r.Use(cors.Handler(cors.Options{
-		// AllowedOrigins:   []string{"http://18.191.252.100:3000"},
-		AllowedOrigins:   []string{"*"},
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE"},
-		AllowedHeaders:   []string{"*"},
+		AllowedOrigins:   []string{"http://18.191.252.100:3000"}, // Only allow your frontend's domain
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}, // Ensure OPTIONS is included
+		AllowedHeaders:   []string{"Content-Type", "Authorization"}, // Allow custom headers like Authorization
 		AllowCredentials: true,
 	}))
 
+	// Define routes
 	r.Get("/logs", getLogs)
 	r.Post("/logs", addLog)
 	r.Delete("/logs/{id}", deleteLog)

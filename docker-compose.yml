@@ -20,7 +20,7 @@ services:
     ports:
       - "5000:5000"
     environment:
-      - MONGO_URI=mongodb+srv://jesuisdolfin:@Dolfino1@fitnesslog-cluster.wjecv1t.mongodb.net/?retryWrites=true&w=majority&appName=fitnesslog-cluster
+      - MONGO_URI=mongodb+srv://jesuisdolfin:%40Dolfino1@fitnesslog-cluster.wjecv1t.mongodb.net/?retryWrites=true&w=majority&appName=fitnesslog-cluster
     volumes:
       - ./server:/usr/src/app
     # Removed the `depends_on: - mongo` line because you're not using a mongo container

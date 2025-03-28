@@ -1,0 +1,11 @@
+version: 0.2
+
+phases:
+  build:
+    commands:
+      - echo Building Docker images...
+      - docker-compose -f docker-compose.yml up -d --build
+
+artifacts:
+  files:
+    - '**/*'

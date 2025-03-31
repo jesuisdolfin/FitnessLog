@@ -1,0 +1,30 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      - main  # Change this to your default branch if different
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.EC2_PUBLIC_IP }} >> ~/.ssh/known_hosts
+
+      - name: Deploy Application
+        run: |
+          ssh ubuntu@${{ secrets.EC2_PUBLIC_IP }} << 'EOF'
+            cd /home/ubuntu/fitness-app  # Change to your project directory
+            git pull origin main         # Pull latest code
+            docker-compose down          # Stop running containers (if applicable)
+            docker-compose up --build -d # Rebuild & start containers
+          EOF

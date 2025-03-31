@@ -23,8 +23,8 @@ jobs:
       - name: Deploy Application
         run: |
           ssh ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
-            cd /home/ubuntu/fitness-app  # Change to your project directory
-            git pull origin main         # Pull latest code
+            cd /home/ubuntu/FitnessLog  # Change to your project directory
+            git pull origin master         # Pull latest code
             docker-compose down          # Stop running containers (if applicable)
             docker-compose up --build -d # Rebuild & start containers
           EOF

@@ -39,7 +39,7 @@ function WeightliftingLog({ logs, onDelete, onEdit, darkMode }) {
                   <td>{date}</td>
                   <td>
                     <button
-                      className="btn btn-secondary"
+                      className="btn btn-primary mt-2"
                       onClick={() => toggleDate(date)}
                     >
                       {expandedDates[date] ? 'Hide Logs' : 'Show Logs'}
@@ -59,13 +59,13 @@ function WeightliftingLog({ logs, onDelete, onEdit, darkMode }) {
                           <strong>Weight:</strong> {log.weight} lbs
                           <div className="log-actions mt-2">
                             <button
-                              className="btn btn-warning"
+                              className="btn btn-primary mt-2"
                               onClick={() => onEdit(log)}
                             >
                               Edit
                             </button>
                             <button
-                              className="btn btn-danger ml-2"
+                              className="btn btn-primary mt-2"
                               onClick={() => onDelete(log._id)}
                             >
                               Delete

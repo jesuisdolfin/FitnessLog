@@ -69,6 +69,29 @@ tbody tr:hover td {
   transition: background-color 0.2s ease;
 }
 
+/* Styling for collapsible log rows */
+.log-row {
+  background-color: #f9f9f9;
+  font-size: 14px;
+  color: #212529;
+  transition: background-color 0.2s ease;
+}
+
+/* Dark mode adjustments for collapsible rows */
+.table.dark .log-row {
+  background-color: #444;
+  color: #f9f9f9;
+}
+
+/* Hover effect for collapsible rows */
+.log-row:hover {
+  background-color: #e0e0e0;
+}
+
+.table.dark .log-row:hover {
+  background-color: #555;
+}
+
 /* Button Styling */
 .btn {
   padding: 6px 12px;
@@ -95,6 +118,26 @@ tbody tr:hover td {
 
 .btn-danger:hover {
   background-color: #c82333;
+}
+
+/* Secondary button styling */
+.btn-secondary {
+  background-color: #6c757d;
+  color: #ffffff;
+}
+
+.btn-secondary:hover {
+  background-color: #5a6268;
+}
+
+/* Dark mode adjustments for secondary buttons */
+.btn.dark.btn-secondary {
+  background-color: #555;
+  color: #ffffff;
+}
+
+.btn.dark.btn-secondary:hover {
+  background-color: #666;
 }
 
 /* Adjust button alignment */

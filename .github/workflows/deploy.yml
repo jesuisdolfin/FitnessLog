@@ -24,7 +24,16 @@ jobs:
         run: |
           ssh ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
             cd /home/ubuntu/FitnessLog  # Change to your project directory
-            git pull origin master         # Pull latest code
-            docker-compose down          # Stop running containers (if applicable)
-            docker-compose up --build -d # Rebuild & start containers
+
+            # Create or update the .env file with sensitive information
+            echo "MONGO_URI=${{ secrets.MONGO_URI }}" > .env
+
+            # Pull the latest code
+            git pull origin master
+
+            # Stop running containers (if applicable)
+            docker-compose down
+
+            # Rebuild and start containers
+            docker-compose up --build -d
           EOF

@@ -5,10 +5,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
 	"github.com/google/uuid"
+	"github.com/joho/godotenv" // Add this import to load .env files
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -27,7 +29,19 @@ var collection *mongo.Collection
 
 // Connect to MongoDB
 func connectDB() {
-	clientOptions := options.Client().ApplyURI("mongodb+srv://jesuisdolfin:_Dolfino1@fitnesslog-cluster.wjecv1t.mongodb.net/?retryWrites=true&w=majority&appName=fitnesslog-cluster")
+	// Load environment variables from .env file (for local development)
+	err := godotenv.Load()
+	if err != nil {
+		fmt.Println("Error loading .env file (this is fine if running in production)")
+	}
+
+	// Get the MongoDB URI from the environment variable
+	mongoURI := os.Getenv("MONGO_URI")
+	if mongoURI == "" {
+		panic("MONGO_URI is not set in the environment")
+	}
+
+	clientOptions := options.Client().ApplyURI(mongoURI)
 	client, err := mongo.Connect(context.TODO(), clientOptions)
 	if err != nil {
 		panic(err)
@@ -150,9 +164,9 @@ func main() {
 
 	// Enable CORS
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"http://18.191.252.100:3000", "http://localhost:3000"},              // Only allow your frontend's domain
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}, // Ensure OPTIONS is included
-		AllowedHeaders:   []string{"Content-Type", "Authorization"},           // Allow custom headers like Authorization
+		AllowedOrigins:   []string{"http://18.191.252.100:3000", "http://localhost:3000"}, // Only allow your frontend's domain
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},             // Ensure OPTIONS is included
+		AllowedHeaders:   []string{"Content-Type", "Authorization"},                       // Allow custom headers like Authorization
 		AllowCredentials: true,
 	}))
 

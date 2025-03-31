@@ -150,7 +150,7 @@ func main() {
 
 	// Enable CORS
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"http://18.191.252.100:3000"},              // Only allow your frontend's domain
+		AllowedOrigins:   []string{"http://18.191.252.100:3000", "http://localhost:3000"},              // Only allow your frontend's domain
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}, // Ensure OPTIONS is included
 		AllowedHeaders:   []string{"Content-Type", "Authorization"},           // Allow custom headers like Authorization
 		AllowCredentials: true,

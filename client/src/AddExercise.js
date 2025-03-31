@@ -24,7 +24,7 @@ function AddExercise({ onAddLog, editLog, onUpdateLog, darkMode }) {
       sets,
       reps,
       weight,
-      date: new Date().toLocaleDateString(),
+      date: editLog ? editLog.date : new Date().toLocaleDateString(),
     };
   
     console.log("Submitting log:", newLog); // Debugging output

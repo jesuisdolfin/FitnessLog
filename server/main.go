@@ -44,27 +44,27 @@ func connectDB() {
 
 // Get all logs
 func getLogs(w http.ResponseWriter, r *http.Request) {
-    var logs []Log
-    cursor, err := collection.Find(context.TODO(), bson.M{})
-    if err != nil {
-        http.Error(w, err.Error(), http.StatusInternalServerError)
-        return
-    }
-    defer cursor.Close(context.TODO())
+	var logs []Log
+	cursor, err := collection.Find(context.TODO(), bson.M{})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer cursor.Close(context.TODO())
 
-    for cursor.Next(context.TODO()) {
-        var log Log
-        cursor.Decode(&log)
-        logs = append(logs, log)
-    }
+	for cursor.Next(context.TODO()) {
+		var log Log
+		cursor.Decode(&log)
+		logs = append(logs, log)
+	}
 
-    // Check if logs are returned
-    if len(logs) == 0 {
-        fmt.Println("No logs found") // Debugging message
-    }
+	// Check if logs are returned
+	if len(logs) == 0 {
+		fmt.Println("No logs found") // Debugging message
+	}
 
-    w.Header().Set("Content-Type", "application/json")
-    json.NewEncoder(w).Encode(logs)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(logs)
 }
 
 // Add a new log
@@ -108,9 +108,26 @@ func deleteLog(w http.ResponseWriter, r *http.Request) {
 func updateLog(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
+	// Decode the updated log from the request body
 	var updatedLog Log
 	json.NewDecoder(r.Body).Decode(&updatedLog)
 
+	// Fetch the existing log from the database
+	var existingLog Log
+	err := collection.FindOne(context.TODO(), bson.M{"_id": id}).Decode(&existingLog)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Preserve the original date
+	updatedLog.Date = existingLog.Date
+
+	// Replace the document in the database
 	result, err := collection.ReplaceOne(context.TODO(), bson.M{"_id": id}, updatedLog)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -133,9 +150,9 @@ func main() {
 
 	// Enable CORS
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"http://18.191.252.100:3000"}, // Only allow your frontend's domain
+		AllowedOrigins:   []string{"http://18.191.252.100:3000"},              // Only allow your frontend's domain
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}, // Ensure OPTIONS is included
-		AllowedHeaders:   []string{"Content-Type", "Authorization"}, // Allow custom headers like Authorization
+		AllowedHeaders:   []string{"Content-Type", "Authorization"},           // Allow custom headers like Authorization
 		AllowCredentials: true,
 	}))
 

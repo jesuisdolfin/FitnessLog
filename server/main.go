@@ -25,14 +25,29 @@ type Log struct {
 	Date     string `json:"date"`
 }
 
+type DefaultExercise struct {
+	Day       string   `json:"day" bson:"day"`
+	Exercises []string `json:"exercises" bson:"exercises"`
+}
+
 var collection *mongo.Collection
 
 // Connect to MongoDB
 func connectDB() {
-	// Load environment variables from .env file (for local development)
-	err := godotenv.Load()
+	// Try to load .env from different locations
+	err := godotenv.Load("../.env") // Try root directory first
 	if err != nil {
-		fmt.Println("Error loading .env file (this is fine if running in production)")
+		err = godotenv.Load() // Then try current directory
+		if err != nil {
+			fmt.Println("Error loading .env file from both root and current directory")
+			if cwd, err := os.Getwd(); err == nil {
+				fmt.Println("Current working directory:", cwd)
+			} else {
+				fmt.Println("Error getting current working directory:", err)
+			}
+		}
+	} else {
+		fmt.Println("Successfully loaded .env file from root directory")
 	}
 
 	// Get the MongoDB URI from the environment variable
@@ -40,6 +55,8 @@ func connectDB() {
 	if mongoURI == "" {
 		panic("MONGO_URI is not set in the environment")
 	}
+
+	fmt.Println("Attempting to connect to MongoDB...") // Debug line
 
 	clientOptions := options.Client().ApplyURI(mongoURI)
 	client, err := mongo.Connect(context.TODO(), clientOptions)
@@ -157,6 +174,55 @@ func updateLog(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(updatedLog)
 }
 
+// Get default exercises for a specific day
+func getDefaultExercises(w http.ResponseWriter, r *http.Request) {
+	day := chi.URLParam(r, "day")
+	fmt.Printf("Received request for day: %s\n", day) // Debug log
+
+	var defaultExercise DefaultExercise
+	err := collection.Database().Collection("default_exercises").FindOne(
+		context.TODO(),
+		bson.M{"day": day},
+	).Decode(&defaultExercise)
+
+	if err != nil {
+		fmt.Printf("Error fetching exercises: %v\n", err) // Debug log
+		if err == mongo.ErrNoDocuments {
+			w.WriteHeader(http.StatusNotFound)
+			json.NewEncoder(w).Encode(map[string]string{"message": "No default exercises found for this day"})
+			return
+		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	fmt.Printf("Sending exercises: %+v\n", defaultExercise) // Debug log
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(defaultExercise)
+}
+
+// Save or update default exercises for a specific day
+func saveDefaultExercises(w http.ResponseWriter, r *http.Request) {
+	var defaultExercise DefaultExercise
+	err := json.NewDecoder(r.Body).Decode(&defaultExercise)
+	if err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	// Upsert the default exercises for the given day
+	filter := bson.M{"day": defaultExercise.Day}
+	update := bson.M{"$set": defaultExercise}
+	_, err = collection.Database().Collection("default_exercises").UpdateOne(context.TODO(), filter, update, options.Update().SetUpsert(true))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{"message": "Default exercises saved successfully"})
+}
+
 func main() {
 	connectDB()
 
@@ -164,9 +230,9 @@ func main() {
 
 	// Enable CORS
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"http://18.191.252.100:3000", "http://localhost:3000"}, // Only allow your frontend's domain
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},             // Ensure OPTIONS is included
-		AllowedHeaders:   []string{"Content-Type", "Authorization"},                       // Allow custom headers like Authorization
+		AllowedOrigins:   []string{"http://18.191.252.100:3000", "http://localhost:3000"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Content-Type", "Authorization"},
 		AllowCredentials: true,
 	}))
 
@@ -175,6 +241,10 @@ func main() {
 	r.Post("/logs", addLog)
 	r.Delete("/logs/{id}", deleteLog)
 	r.Put("/logs/{id}", updateLog)
+
+	// Routes for default exercises
+	r.Get("/default-exercises/{day}", getDefaultExercises)
+	r.Post("/default-exercises", saveDefaultExercises)
 
 	fmt.Println("Starting server on port 5000...")
 	err := http.ListenAndServe("0.0.0.0:5000", r)

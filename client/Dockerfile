@@ -17,3 +17,4 @@ EXPOSE 3000
 
 # Start the React development server
 CMD ["npm", "start", "--host", "0.0.0.0"]
+

@@ -30,33 +30,40 @@ type DefaultExercise struct {
 	Exercises []string `json:"exercises" bson:"exercises"`
 }
 
-var collection *mongo.Collection
+var (
+	logsCollection             *mongo.Collection
+	defaultExercisesCollection *mongo.Collection
+)
 
 // Connect to MongoDB
 func connectDB() {
-	// Try to load .env from different locations
-	err := godotenv.Load("../.env") // Try root directory first
-	if err != nil {
-		err = godotenv.Load() // Then try current directory
+	var mongoURI string
+
+	// First try environment variable (for production)
+	mongoURI = os.Getenv("MONGO_URI")
+
+	// If not found, try .env file (for development)
+	if mongoURI == "" {
+		fmt.Println("MONGO_URI not found in environment, trying .env file...")
+		err := godotenv.Load("../.env")
 		if err != nil {
-			fmt.Println("Error loading .env file from both root and current directory")
-			if cwd, err := os.Getwd(); err == nil {
-				fmt.Println("Current working directory:", cwd)
-			} else {
-				fmt.Println("Error getting current working directory:", err)
+			err = godotenv.Load()
+			if err != nil {
+				fmt.Println("Error loading .env file")
+				fmt.Println("Please ensure MONGO_URI is set in the environment or .env file exists")
+				os.Exit(1)
 			}
 		}
-	} else {
-		fmt.Println("Successfully loaded .env file from root directory")
+		mongoURI = os.Getenv("MONGO_URI")
 	}
 
-	// Get the MongoDB URI from the environment variable
-	mongoURI := os.Getenv("MONGO_URI")
+	// Final check
 	if mongoURI == "" {
-		panic("MONGO_URI is not set in the environment")
+		panic("MONGO_URI is not set in environment or .env file")
 	}
 
-	fmt.Println("Attempting to connect to MongoDB...") // Debug line
+	fmt.Printf("Attempting to connect to MongoDB at %s...\n",
+		mongoURI[:30]+"...") // Show part of URI for debugging
 
 	clientOptions := options.Client().ApplyURI(mongoURI)
 	client, err := mongo.Connect(context.TODO(), clientOptions)
@@ -69,14 +76,16 @@ func connectDB() {
 		panic(err)
 	}
 
-	collection = client.Database("fitnesslog").Collection("logs")
-	fmt.Println("Connected to MongoDB!")
+	// Initialize both collections
+	logsCollection = client.Database("fitnesslog").Collection("logs")
+	defaultExercisesCollection = client.Database("fitnesslog").Collection("default_exercises")
+	fmt.Println("Connected to MongoDB and initialized collections!")
 }
 
 // Get all logs
 func getLogs(w http.ResponseWriter, r *http.Request) {
 	var logs []Log
-	cursor, err := collection.Find(context.TODO(), bson.M{})
+	cursor, err := logsCollection.Find(context.TODO(), bson.M{})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -107,7 +116,7 @@ func addLog(w http.ResponseWriter, r *http.Request) {
 		log.ID = uuid.New().String()
 	}
 
-	_, err := collection.InsertOne(context.TODO(), log)
+	_, err := logsCollection.InsertOne(context.TODO(), log)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -121,7 +130,7 @@ func addLog(w http.ResponseWriter, r *http.Request) {
 func deleteLog(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
-	result, err := collection.DeleteOne(context.TODO(), bson.M{"_id": id})
+	result, err := logsCollection.DeleteOne(context.TODO(), bson.M{"_id": id})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -145,7 +154,7 @@ func updateLog(w http.ResponseWriter, r *http.Request) {
 
 	// Fetch the existing log from the database
 	var existingLog Log
-	err := collection.FindOne(context.TODO(), bson.M{"_id": id}).Decode(&existingLog)
+	err := logsCollection.FindOne(context.TODO(), bson.M{"_id": id}).Decode(&existingLog)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			w.WriteHeader(http.StatusNotFound)
@@ -159,7 +168,7 @@ func updateLog(w http.ResponseWriter, r *http.Request) {
 	updatedLog.Date = existingLog.Date
 
 	// Replace the document in the database
-	result, err := collection.ReplaceOne(context.TODO(), bson.M{"_id": id}, updatedLog)
+	result, err := logsCollection.ReplaceOne(context.TODO(), bson.M{"_id": id}, updatedLog)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -180,7 +189,7 @@ func getDefaultExercises(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("Received request for day: %s\n", day) // Debug log
 
 	var defaultExercise DefaultExercise
-	err := collection.Database().Collection("default_exercises").FindOne(
+	err := defaultExercisesCollection.FindOne(
 		context.TODO(),
 		bson.M{"day": day},
 	).Decode(&defaultExercise)
@@ -213,7 +222,7 @@ func saveDefaultExercises(w http.ResponseWriter, r *http.Request) {
 	// Upsert the default exercises for the given day
 	filter := bson.M{"day": defaultExercise.Day}
 	update := bson.M{"$set": defaultExercise}
-	_, err = collection.Database().Collection("default_exercises").UpdateOne(context.TODO(), filter, update, options.Update().SetUpsert(true))
+	_, err = logsCollection.Database().Collection("default_exercises").UpdateOne(context.TODO(), filter, update, options.Update().SetUpsert(true))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

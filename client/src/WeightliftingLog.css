@@ -200,3 +200,74 @@ tbody tr:hover td {
 td .btn {
   margin-right: 6px;
 }
+
+/* Default Exercises Styling */
+.default-exercises {
+  margin-bottom: 20px;
+  padding: 20px;  /* Increased padding */
+  border: 1px solid #ddd;
+  border-radius: 8px;  /* Increased border radius */
+  background-color: #f8f9fa;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);  /* Added subtle shadow */
+}
+
+.dark .default-exercises {
+  background-color: #2c3034;
+  border-color: #495057;
+  color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);  /* Darker shadow for dark mode */
+}
+
+.default-exercises h4 {
+  margin-bottom: 20px;  /* Increased margin */
+  color: inherit;
+  font-size: 1.2rem;  /* Slightly larger heading */
+  padding-bottom: 10px;  /* Added padding */
+  border-bottom: 2px solid #dee2e6;  /* Added separator line */
+}
+
+.dark .default-exercises h4 {
+  border-bottom-color: #495057;  /* Darker separator for dark mode */
+}
+
+.default-exercises .list-group {
+  margin: 0;  /* Reset margin */
+  padding: 0;  /* Reset padding */
+}
+
+.default-exercises .list-group-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: transparent;
+  border-color: #dee2e6;
+  padding: 15px;  /* Increased padding */
+  margin-bottom: 8px;  /* Added margin between items */
+  border-radius: 6px;  /* Rounded corners */
+  transition: background-color 0.2s ease;  /* Smooth hover transition */
+}
+
+.default-exercises .list-group-item:last-child {
+  margin-bottom: 0;  /* Remove margin from last item */
+}
+
+.dark .default-exercises .list-group-item {
+  background-color: #343a40;
+  border-color: #495057;
+  color: #fff;
+}
+
+.default-exercises .list-group-item:hover {
+  background-color: #f0f0f0;  /* Light hover effect */
+}
+
+.dark .default-exercises .list-group-item:hover {
+  background-color: #404850;  /* Dark hover effect */
+}
+
+.default-exercises .btn-sm {
+  margin-left: 15px;  /* Increased margin */
+  padding: 6px 12px;  /* Adjusted padding */
+  font-weight: 500;  /* Slightly bolder text */
+  min-width: 80px;  /* Consistent button width */
+}

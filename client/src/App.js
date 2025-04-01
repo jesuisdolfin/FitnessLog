@@ -9,6 +9,7 @@ function App() {
   const [logs, setLogs] = useState([]);
   const [editLog, setEditLog] = useState(null);
   const [darkMode, setDarkMode] = useState(false);
+  const [defaultExercises, setDefaultExercises] = useState(null);
 
   // Load logs from the backend
   useEffect(() => {
@@ -24,6 +25,22 @@ function App() {
     }
     fetchLogs();
   }, []);
+
+  // Fetch default exercises for the current day
+  useEffect(() => {
+    async function fetchDefaultExercises() {
+      try {
+        const today = new Date().toLocaleString('en-US', { weekday: 'long' });
+        const response = await axios.get(`${BASE_URL}:5000/default-exercises/${today}`);
+        console.log("Fetched default exercises:", response.data);
+        setDefaultExercises(response.data);
+      } catch (error) {
+        console.error("Failed to fetch default exercises:", error);
+        setDefaultExercises(null);
+      }
+    }
+    fetchDefaultExercises();
+  }, []); // Empty dependency array means this runs once when component mounts
 
   // Sync body background color with dark mode state
   useEffect(() => {
@@ -72,6 +89,21 @@ function App() {
     }
   };
 
+  const handleEdit = async (log) => {
+    if (log._id) {
+      // Existing log - update
+      setEditLog(log);
+    } else {
+      // New log - add
+      try {
+        const response = await axios.post(`${BASE_URL}:5000/logs`, log);
+        setLogs(prevLogs => [...prevLogs, response.data]);
+      } catch (error) {
+        console.error("Failed to add log:", error);
+      }
+    }
+  };
+
   return (
     <div className={`app ${darkMode ? "dark" : ""}`}>
       <div className="container">
@@ -84,12 +116,14 @@ function App() {
           editLog={editLog}
           onUpdateLog={handleUpdateLog}
           darkMode={darkMode}
+          defaultExercises={defaultExercises} // Pass default exercises to AddExercise
         />
         <WeightliftingLog
           logs={logs}
           onDelete={handleDeleteLog}
-          onEdit={setEditLog}
+          onEdit={handleEdit}
           darkMode={darkMode}
+          defaultExercises={defaultExercises} // Pass default exercises to WeightliftingLog
         />
       </div>
     </div>

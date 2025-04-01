@@ -12,15 +12,12 @@ services:
     depends_on:
       - backend
 
-
-
   backend:
     build:
       context: ./server
     ports:
       - "5000:5000"
     environment:
-      - MONGO_URI=mongodb+srv://jesuisdolfin:_Dolfino1@fitnesslog-cluster.wjecv1t.mongodb.net/?retryWrites=true&w=majority&appName=fitnesslog-cluster
+      - MONGO_URI=${MONGO_URI}  # Reference the variable from the .env file
     volumes:
       - ./server:/usr/src/app
-    # Removed the `depends_on: - mongo` line because you're not using a mongo container
